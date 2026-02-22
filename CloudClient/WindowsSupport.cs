@@ -21,6 +21,9 @@ namespace CloudClient
         private const int WM_RBUTTONDOWN = 0x0204;
         private const int WM_COMMAND = 0x0111;
 
+        // Custom message to request icon update from the message loop thread
+        private const int WM_UPDATE_ICON = WM_USER + 2;
+
         [DllImport("shell32.dll", CharSet = CharSet.Auto, SetLastError = true)]
         private static extern bool Shell_NotifyIcon(uint dwMessage, [In] ref NOTIFYICONDATA lpData);
 
@@ -59,6 +62,9 @@ namespace CloudClient
 
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         private static extern bool DestroyIcon(IntPtr hIcon);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern bool PostMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Auto)]
         private struct NOTIFYICONDATA
@@ -125,6 +131,9 @@ namespace CloudClient
         static private Action _openUI;
         static private string _cloudPath;
         static private Icon? _currentIcon;
+
+        // Pending icon status to be applied on the message loop thread
+        static private Client.IconStatus? _pendingIconStatus;
 
         private delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
         static private WndProcDelegate _wndProcDelegate;
@@ -224,7 +233,6 @@ namespace CloudClient
 #endif
                     return default;
                 }
-
             }
         }
 
@@ -245,12 +253,36 @@ namespace CloudClient
                     OpenFolder(_cloudPath);
                 }
             }
+            else if (msg == WM_UPDATE_ICON)
+            {
+                // Execute icon update on the message loop thread (thread-safe)
+                if (_pendingIconStatus.HasValue)
+                {
+                    var status = _pendingIconStatus.Value;
+                    _pendingIconStatus = null;
+                    ApplyIconUpdate(status);
+                }
+            }
             else if (msg == WM_DESTROY)
             {
                 PostQuitMessage(0);
             }
 
             return DefWindowProc(hWnd, msg, wParam, lParam);
+        }
+
+        /// <summary>
+        /// Performs the actual Shell_NotifyIcon update. Must be called on the message loop thread.
+        /// </summary>
+        static private void ApplyIconUpdate(Client.IconStatus newStatus)
+        {
+            _notifyIconData.hIcon = LoadIconFromResources(newStatus);
+            _notifyIconData.uFlags = NIF_ICON;
+            if (!Shell_NotifyIcon(NIM_MODIFY, ref _notifyIconData))
+            {
+                int error = Marshal.GetLastPInvokeError();
+                Debug.WriteLine($"Failed to update notify icon. Error: {error}");
+            }
         }
 
         static private void OpenFolder(string path)
@@ -288,15 +320,18 @@ namespace CloudClient
             process.WaitForExit();
         }
 
+        /// <summary>
+        /// Requests an icon update. Safe to call from any thread.
+        /// </summary>
         static public void UpdateStatusIcon(Client.IconStatus newStatus)
         {
-            _notifyIconData.hIcon = LoadIconFromResources(newStatus);
-            _notifyIconData.uFlags = NIF_ICON;
-            if (!Shell_NotifyIcon(NIM_MODIFY, ref _notifyIconData))
-            {
-                int error = Marshal.GetLastPInvokeError();
-                throw new Exception($"Failed to update notify icon. Error: {error}");
-            }
+            if (_windowHandle == IntPtr.Zero)
+                return;
+
+            _pendingIconStatus = newStatus;
+            // Post a message to the window's message loop thread so the update
+            // happens on the correct thread that owns the notify icon.
+            PostMessage(_windowHandle, WM_UPDATE_ICON, IntPtr.Zero, IntPtr.Zero);
         }
     }
 }
