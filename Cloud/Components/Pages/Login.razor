@@ -220,16 +220,10 @@ else if (!LoginIsRunning)
         </div>
     </div>
 }
-@* <br />
-    <label id="Notification" class="card" style="background-color: @NotificationColor">@Notification</label>
-    <br />
-
-    <br />
-    <label id="SyncStatus" class="card" style="background-color: @localSyncStatusColor">@SyncStatus</label>
-    <br /> *@
-
-
-<pre>@Status</pre>
+@if (!string.IsNullOrEmpty(Status))
+{
+    <pre>@Status</pre>
+}
 
 <br />
 
@@ -402,7 +396,7 @@ else if (!LoginIsRunning)
                 ni.OperationalStatus == OperationalStatus.Up &&
                 (ni.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 ||
                  ni.NetworkInterfaceType == NetworkInterfaceType.Ethernet) &&
-                ni.Speed > 0 && 
+                ni.Speed > 0 &&
                 !ni.Name.Contains("Virtual") &&
                 !ni.Description.Contains("Virtual")
             );
