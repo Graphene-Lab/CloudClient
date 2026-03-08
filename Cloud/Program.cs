@@ -86,7 +86,7 @@ EncryptedMessaging.Context.UsePullPushDataChannel = (bool)configuration.GetValue
 if (!new FileInfo(Static.CloudPath).Directory.Exists)
 {
     CloudBox.CloudBox.ResetAppData();
-    throw new Exception("ERROR: Invalid cloud path!"); // Restart!
+    throw new Exception($"ERROR: Invalid cloud path!, path: {Static.CloudPath}"); // Restart!
 }
 
 Func<int, bool> PortIsRearchable = (port) =>
@@ -95,7 +95,7 @@ Func<int, bool> PortIsRearchable = (port) =>
     try
     {
         var result = tcpClient.BeginConnect(IPAddress.Loopback.ToString(), port, null, null);
-        var success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds(500));
+            var success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromMilliseconds(500));
         tcpClient.EndConnect(result);
     }
     catch (Exception ex) { return false; }

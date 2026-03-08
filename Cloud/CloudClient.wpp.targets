@@ -1,6 +1,6 @@
 ﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Target Name="CustomAfterPublish" AfterTargets="Publish">
-    <Message Text=">>> Creating ZIP CloudClientDesktop from $(PublishDir)" Importance="High" />
-    <Exec Command="powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command &quot;Compress-Archive -Path '$(PublishDir)*' -DestinationPath 'C:\Users\andre\OneDrive\Sorgenti\www\SiaTheCloud\download\CloudClientDesktop.zip' -Force&quot;" />
-  </Target>
+	<Target Name="CustomAfterPublish" AfterTargets="Publish">
+		<Message Text=">>> Creating ZIP CloudClientDesktop from $(PublishDir)" Importance="High" />
+		<Exec Command="powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command &quot;Compress-Archive -Path '$(PublishDir)*' -DestinationPath '$(PublishDir)CloudClientDesktop.zip' -Force&quot;" />
+	</Target>
 </Project>
