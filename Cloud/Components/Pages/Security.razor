@@ -123,6 +123,7 @@ else
     {
         Notification = null;
         OperationInProgress = true;
+        ButtonEnabled = false; // disable btn while operation is in progress
         InvokeAsync(StateHasChanged);
         System.Threading.Tasks.Task.Run(() =>
         {
