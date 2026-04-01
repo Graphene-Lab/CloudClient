@@ -68,31 +68,62 @@ else
 @functions {
     void DestroyLocalData()
     {
-        var fileinfo = new FileInfo(VirtualDiskManager.VirtualDiskFullFileName);
-        foreach (var file in fileinfo.Directory.GetFiles(Path.GetFileNameWithoutExtension(fileinfo.Name) + ".*"))
-        {
-            try
-            {
-                file.Delete();
-            }
-            catch (Exception) { }
-        }
+         // TODO: add try catchs for UI error display
+        var vhd = VirtualDiskManager.VirtualDiskFullFileName;
+        Static.Logout();
+
+        // Unmount beofre deletion
+        try { SystemExtra.Util.UnmountVirtualDiskWindow(vhd); } catch { /* ignore if already unmounted */ }
+
+        // clean the mount-point directory entry before remove actual vhd file for caition
+        // so we dont get broken mountpoint behavior
         var cloudPath = new DirectoryInfo(Static.CloudPath);
-        if (cloudPath.Exists && cloudPath.LinkTarget != null)
+        if (cloudPath.Exists) // After unmount, the mount-point entry may already be removed; LinkTarget can be null even for a valid cleanup path, so we only require Exists here.
         {
             cloudPath.Attributes &= ~FileAttributes.ReadOnly;
-            cloudPath.Delete(true);
+            if (cloudPath.Attributes.HasFlag(FileAttributes.ReparsePoint))
+                cloudPath.Delete(false); // remove link/mountpoint only
+            else
+                cloudPath.Delete(true);  // normal folder cleanup, in case if it exisited (for example if first cloud folder was cretead like normal folder and later virtual disk enalbed)
         }
 
-        string? vdPassword = VirtualDiskManager.VirtualDiskPassword;
-        VirtualDiskManager.CreateVirtualDisk(vdPassword);
-        Static.Client?.Sync?.ResetCacheHashFileTable();
-        attempts = 0;
+
+        // eventhough the .vhd file changed it exention to .sys
+        // we also delete the .vhd file if it exists, just to be sure that no file is left behind
+        var targets = new[] { vhd, Path.ChangeExtension(vhd, ".sys") };
+        foreach (var t in targets)
+        {
+            if (File.Exists(t)) File.Delete(t);
+        }
+
+        // create new virtual disk
+        try
+        {
+            string? vdPassword = VirtualDiskManager.VirtualDiskPassword;
+            VirtualDiskManager.CreateVirtualDisk(vdPassword);
+            Static.Client?.Sync?.ResetCacheHashFileTable();
+            attempts = 0;
+
+            NotificationStyle = "alert-success";
+            Notification = "All local data was destroyed and a new local disk was created.";
+        }
+        catch (Exception ex)
+        {
+            NotificationStyle = "alert-danger";
+            Notification = "Local data cleanup finished, but creating a new virtual disk failed: " + ex.Message;
+            //TODO: add retry button? lets say there werent enough space so user cleans and tries again?
+        }
+        finally
+        {
+            Reload();
+        }
     }
+
     void ButtonClick()
     {
         Notification = null;
         OperationInProgress = true;
+        ButtonEnabled = false; // disable btn while operation is in progress
         InvokeAsync(StateHasChanged);
         System.Threading.Tasks.Task.Run(() =>
         {
