@@ -14,7 +14,7 @@ If you don't have the Cloud Server, alternatively you can use this software with
 To use this software you need to have the relevant Private Cloud and compatible Cloud service (otherwise where does the cloud connect?).
 This program is an open source desktop cloud client to automatically synchronize, encrypted and with military grade security, files from your PC to your private cloud or cloud service.
 The synchronization algorithms are very fast and the software with hundreds of thousands of files does not go into crisis as it happens with similar products.
-This is an open source product and is published here in exactly the same source format version as you find here: https://github.com/Andrea-Bruno/CloudClient without any additions or modifications.
+This is an open source product and is published here in exactly the same source format version as you find here: https://github.com/Graphene-Lab/CloudClient without any additions or modifications.
 Respect for your privacy is total, and the military level of security protects you and your data from hackers who would like to sneak into the cloud to access your personal data and information.
 
 Safety:
@@ -87,15 +87,15 @@ Our solution is not just an alternative. It is the *only* alternative.
 
 The libraries that are the engine of this app (and represent a dependency), must be downloaded from here:
 
-* [Cloud Library](https://github.com/Andrea-Bruno/CloudLibraries) are libraries for the creation of symmetric cloud (with server and equal client).
+* [Cloud Library](https://github.com/Graphene-Lab/CloudLibraries) are libraries for the creation of symmetric cloud (with server and equal client).
 
-* [Encrypted Messenging](https://github.com/Andrea-Bruno/EncryptedMessaging) are Low-level libraries for trustless encrypted socket connection (derived from bitcoin technology).
+* [Encrypted Messenging](https://github.com/Graphene-Lab/EncryptedMessaging) are Low-level libraries for trustless encrypted socket connection (derived from bitcoin technology).
 
-* [Secure Storage](https://github.com/Andrea-Bruno/SecureStorage) It is a library used to save data and information produced by the application in an encrypted and inaccessible way.
+* [Secure Storage](https://github.com/Graphene-Lab/SecureStorage) It is a library used to save data and information produced by the application in an encrypted and inaccessible way.
 
-* [AntiGit](https://github.com/Andrea-Bruno/AntiGithub) , in this project you will find the libraries used for the data backup and redundancy functions.
+* [AntiGit](https://github.com/Graphene-Lab/AntiGithub) , in this project you will find the libraries used for the data backup and redundancy functions.
 
-NOTE: Any other (possible) dependencies are on [our GitHub](https://github.com/Andrea-Bruno) in source format.
+NOTE: Any other (possible) dependencies are on [our GitHub](https://github.com/Graphene-Lab) in source format.
 
 The reasons that led to this project with dontnet is that it is an open source development environment, and effective security is achieved only by being able to inspect all parts of the code, including the development framework.
 * [.NET is open source](https://dotnet.microsoft.com/en-us/platform/open-source)
