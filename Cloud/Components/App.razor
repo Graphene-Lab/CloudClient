@@ -17,14 +17,65 @@
         <link rel="stylesheet" href="@ThemeService.ThemeCssPath" />
     }
   
+    <script src="pwa-install.js"></script>
     <ImportMap />
-    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="icon" type="image/svg+xml" href="icon.svg" />
+    <link rel="apple-touch-icon" href="favicon.png" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#0d6efd" />
+    <style>
+        #pwaInstallPrompt {
+            position: fixed;
+            right: 1rem;
+            bottom: 1rem;
+            z-index: 9999;
+            max-width: 360px;
+            padding: .9rem;
+            border: 1px solid #d0d7de;
+            border-radius: .5rem;
+            background: #ffffff;
+            color: #1f2328;
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+            display: none;
+        }
+
+        #pwaInstallPrompt .pwa-actions {
+            margin-top: .6rem;
+            display: flex;
+            gap: .5rem;
+            justify-content: flex-end;
+        }
+
+        #pwaInstallPrompt button {
+            padding: .35rem .65rem;
+            border-radius: .35rem;
+            border: 1px solid #c7ced6;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        #pwaInstallPrompt .pwa-install {
+            background: #0d6efd;
+            border-color: #0d6efd;
+            color: #fff;
+        }
+    </style>
     <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 
 <body>
     <Routes @rendermode="InteractiveServer" />
+
+    <div id="pwaInstallPrompt" role="status" aria-live="polite">
+        Install Cloud app for a faster experience.
+        <div class="pwa-actions">
+            <button type="button" onclick="pwaDismiss()">Not now</button>
+            <button type="button" class="pwa-install" onclick="pwaInstall()">Install</button>
+        </div>
+    </div>
+
     <script src="_framework/blazor.web.js"></script>
+    <script>navigator.serviceWorker.register('service-worker.js')</script>
 </body>
 
 </html>
