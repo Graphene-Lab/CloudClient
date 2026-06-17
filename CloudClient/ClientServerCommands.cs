@@ -153,8 +153,22 @@ namespace CloudClient
                             GetSSHAccessSemaphore.Set();
                             break;
                         case Command.GetSupportedApps:
-                            _SupportedApps = Encoding.UTF8.GetString(parameters[0]).Split('\t');
-                            GetSupportedAppsSemaphore.Set(); // unlock semaphore
+                            _SupportedApps = SplitApps(parameters[0]);
+                            GetSupportedAppsSemaphore?.Set(); // unlock semaphore
+                            break;
+                        case Command.GetApplicationContext:
+                            _ApplicationContextResponse = new ApplicationContext
+                            {
+                                ApplicationsEnabled = parameters.Count > 0 && BitConverter.ToBoolean(parameters[0], 0),
+                                ServerIsLinux = parameters.Count > 1 && BitConverter.ToBoolean(parameters[1], 0),
+                                ClientIsSocketClient = parameters.Count > 2 && BitConverter.ToBoolean(parameters[2], 0),
+                                CanUseApplications = parameters.Count > 3 && BitConverter.ToBoolean(parameters[3], 0),
+                                ReasonCode = parameters.Count > 4 && parameters[4].Length > 0
+                                    ? (CloudBox.ApplicationContextReason)parameters[4][0]
+                                    : CloudBox.ApplicationContextReason.Unknown,
+                                SupportedApps = parameters.Count > 5 ? SplitApps(parameters[5]) : Array.Empty<string>()
+                            };
+                            GetApplicationContextSemaphore?.Set(); // unlock semaphore
                             break;
                     }
                 }
@@ -180,7 +194,6 @@ namespace CloudClient
         Connection connectedTo;
         //bool isLocal = false;
         //bool isLocalhost = false;
-
 
         /// <summary>
         /// Requires SSH access to the cloud to run a specific program locally
@@ -221,11 +234,10 @@ namespace CloudClient
         }
         private AutoResetEvent GetSSHAccessSemaphore;
 
-
         // ============== GetSupportedApps ===========================
 
-        // private bool GetSupportedApps() => SendCommand(ServerCloud, Command.GetSupportedApps, null);
-
+        // Legacy command. New code should call GetApplicationContext()
+        // because it returns both availability and the app list in one response.
         private AutoResetEvent GetSupportedAppsSemaphore;
         private string[] _SupportedApps;
         private bool GetSupportedAppsRunning;
@@ -242,12 +254,40 @@ namespace CloudClient
                     if (SendCommand(ServerCloud, Command.GetSupportedApps, null))
                     {
                         GetSupportedAppsSemaphore = new AutoResetEvent(false);
-                        timeout = GetSupportedAppsSemaphore.WaitOne(10000);
+                        timeout = !GetSupportedAppsSemaphore.WaitOne(10000);
                     }
                     GetSupportedAppsRunning = false;
                 }
             }
             return _SupportedApps;
+        }
+
+        // ============== GetApplicationContext ===========================
+
+        private AutoResetEvent GetApplicationContextSemaphore;
+        private ApplicationContext _ApplicationContextResponse;
+        private bool GetApplicationContextRunning;
+        public ApplicationContext GetApplicationContext(out bool timeout)
+        {
+            timeout = false;
+            _ApplicationContextResponse = null;
+            if (!GetApplicationContextRunning)
+            {
+                GetApplicationContextRunning = true;
+                if (SendCommand(ServerCloud, Command.GetApplicationContext, null))
+                {
+                    GetApplicationContextSemaphore = new AutoResetEvent(false);
+                    timeout = !GetApplicationContextSemaphore.WaitOne(10000);
+                }
+                GetApplicationContextRunning = false;
+            }
+            return _ApplicationContextResponse;
+        }
+
+        private static string[] SplitApps(byte[] bytes)
+        {
+            var apps = Encoding.UTF8.GetString(bytes);
+            return string.IsNullOrEmpty(apps) ? [] : apps.Split('\t', StringSplitOptions.RemoveEmptyEntries);
         }
 
     }
