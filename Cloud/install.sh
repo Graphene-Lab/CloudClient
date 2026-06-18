@@ -54,7 +54,7 @@ sudo chmod 755 $DOTNET_PATH
 
 sudo chmod +x ./dotnet-install.sh
 # info https://learn.microsoft.com/it-it/dotnet/core/tools/dotnet-install-script
-sudo ./dotnet-install.sh --channel 9.0 --runtime aspnetcore --install-dir $DOTNET_PATH
+sudo ./dotnet-install.sh --channel 10.0 --runtime aspnetcore --install-dir $DOTNET_PATH
 
 #start the application
 sudo $DOTNET_PATH/dotnet Cloud.dll

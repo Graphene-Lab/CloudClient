@@ -27,11 +27,11 @@ xcopy "%SCRIPT_DIR%*" "%DEST%\" /E /I /H /Y
 where dotnet >nul 2>&1
 if %errorlevel% equ 0 (
     :: dotnet is available, check runtimes
-    dotnet --list-runtimes | findstr /i "Microsoft.WindowsDesktop.App 9." >nul
+    dotnet --list-runtimes | findstr /i "Microsoft.WindowsDesktop.App 10." >nul
     if %errorlevel% equ 0 (
         set "desktop_installed=1"
     )
-    dotnet --list-runtimes | findstr /i "Microsoft.AspNetCore.App 9." >nul
+    dotnet --list-runtimes | findstr /i "Microsoft.AspNetCore.App 10." >nul
     if %errorlevel% equ 0 (
         set "aspnet_installed=1"
     )
@@ -41,20 +41,20 @@ if %errorlevel% equ 0 (
 
 :: Install Desktop Runtime if not installed
 if not defined desktop_installed (
-    echo Installing Windows Desktop Runtime 9...
+    echo Installing Windows Desktop Runtime 10...
     if not exist "%SCRIPT_DIR%desktop-runtime.exe" (
-        echo Downloading Windows Desktop Runtime 9 installer...
-        curl -L -o "%SCRIPT_DIR%desktop-runtime.exe" https://aka.ms/dotnet/9.0/windowsdesktop-runtime-win-x64.exe
+        echo Downloading Windows Desktop Runtime 10 installer...
+        curl -L -o "%SCRIPT_DIR%desktop-runtime.exe" https://aka.ms/dotnet/10.0/windowsdesktop-runtime-win-x64.exe
     )
     start /wait "" "%SCRIPT_DIR%desktop-runtime.exe" /install /quiet /norestart
 )
 
 :: Install ASP.NET Core Runtime if not installed
 if not defined aspnet_installed (
-    echo Installing ASP.NET Core Runtime 9...
+    echo Installing ASP.NET Core Runtime 10...
     if not exist "%SCRIPT_DIR%aspnet-runtime.exe" (
-        echo Downloading ASP.NET Core Runtime 9 installer...
-        curl -L -o "%SCRIPT_DIR%aspnet-runtime.exe" https://aka.ms/dotnet/9.0/aspnetcore-runtime-win-x64.exe
+        echo Downloading ASP.NET Core Runtime 10 installer...
+        curl -L -o "%SCRIPT_DIR%aspnet-runtime.exe" https://aka.ms/dotnet/10.0/aspnetcore-runtime-win-x64.exe
     )
     start /wait "" "%SCRIPT_DIR%aspnet-runtime.exe" /install /quiet /norestart
 )
