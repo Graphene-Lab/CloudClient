@@ -56,5 +56,72 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <PropertyGroup>
+    <ResolveStaticWebAssetsInputsDependsOn>
+      $(ResolveStaticWebAssetsInputsDependsOn);
+      AddBlazorFrameworkStaticWebAssetsForWinExe
+    </ResolveStaticWebAssetsInputsDependsOn>
+  </PropertyGroup>
+
+  <Target Name="AddBlazorFrameworkStaticWebAssetsForWinExe" Condition="'$(OutputType)' == 'WinExe'">
+    <ItemGroup Condition="'$(UsingMicrosoftNETSdkWeb)' == 'true'">
+      <_WinExeFrameworkStaticWebAssetCandidate Include="$(BlazorFrameworkStaticWebAssetRoot)\blazor.web.js">
+        <RelativePath>_framework/blazor.web.js</RelativePath>
+      </_WinExeFrameworkStaticWebAssetCandidate>
+      <_WinExeFrameworkStaticWebAssetCandidate Include="$(BlazorFrameworkStaticWebAssetRoot)\blazor.server.js">
+        <RelativePath>_framework/blazor.server.js</RelativePath>
+      </_WinExeFrameworkStaticWebAssetCandidate>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(UsingMicrosoftNETSdkWeb)' == 'true' AND '$(UseBlazorFrameworkDebugAssets)' == 'true'">
+      <_WinExeFrameworkStaticWebAssetCandidate Include="$(BlazorFrameworkStaticWebAssetRoot)\blazor.web.js.map">
+        <RelativePath>_framework/blazor.web.js.map</RelativePath>
+      </_WinExeFrameworkStaticWebAssetCandidate>
+      <_WinExeFrameworkStaticWebAssetCandidate Include="$(BlazorFrameworkStaticWebAssetRoot)\blazor.server.js.map">
+        <RelativePath>_framework/blazor.server.js.map</RelativePath>
+      </_WinExeFrameworkStaticWebAssetCandidate>
+    </ItemGroup>
+
+    <ItemGroup>
+      <_MissingWinExeFrameworkStaticWebAssetCandidate
+        Include="@(_WinExeFrameworkStaticWebAssetCandidate)"
+        Condition="!Exists('%(Identity)')" />
+      <_WinExeFrameworkStaticWebAssetCandidate Remove="@(_MissingWinExeFrameworkStaticWebAssetCandidate)" />
+    </ItemGroup>
+
+    <Message
+      Importance="High"
+      Condition="'@(_MissingWinExeFrameworkStaticWebAssetCandidate->Count())' != '0'"
+      Text="Framework asset '%(_MissingWinExeFrameworkStaticWebAssetCandidate.Identity)' could not be found and won't be included in the project." />
+
+    <DefineStaticWebAssets
+      Condition="'@(_WinExeFrameworkStaticWebAssetCandidate->Count())' != '0'"
+      CandidateAssets="@(_WinExeFrameworkStaticWebAssetCandidate)"
+      ContentRoot="$(BlazorFrameworkStaticWebAssetRoot)"
+      SourceId="$(PackageId)"
+      SourceType="Discovered"
+      AssetKind="All"
+      AssetMode="CurrentProject"
+      AssetRole="Primary"
+      FingerprintCandidates="true"
+      BasePath="$(StaticWebAssetBasePath)">
+      <Output TaskParameter="Assets" ItemName="_WinExeFrameworkStaticWebAsset" />
+    </DefineStaticWebAssets>
+
+    <DefineStaticWebAssetEndpoints
+      Condition="'@(_WinExeFrameworkStaticWebAsset)' != ''"
+      CandidateAssets="@(_WinExeFrameworkStaticWebAsset)"
+      ExistingEndpoints=""
+      ContentTypeMappings="@(StaticWebAssetContentTypeMapping)">
+      <Output TaskParameter="Endpoints" ItemName="_WinExeFrameworkStaticAssetEndpoint" />
+    </DefineStaticWebAssetEndpoints>
+
+    <ItemGroup>
+      <StaticWebAsset Include="@(_WinExeFrameworkStaticWebAsset)" />
+      <StaticWebAssetEndpoint Include="@(_WinExeFrameworkStaticAssetEndpoint)" />
+    </ItemGroup>
+  </Target>
+
   <Import Project="CloudClient.wpp.targets" Condition="Exists('CloudClient.wpp.targets')" />
 </Project>
