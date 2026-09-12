@@ -49,6 +49,9 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $root)   # tools/installer ->
 $exe = Join-Path $PayloadDir 'Cloud.exe'
 if (-not (Test-Path $exe)) { throw "Cloud.exe not found at '$exe' - is this a win-x64 Cloud Client payload?" }
 if (-not $OutDir) { $OutDir = Join-Path (Split-Path -Parent $PayloadDir) 'installer-out' }
+# Resolve to absolute now: the WiX build runs after Push-Location $root, so a relative
+# -OutDir would otherwise land under tools/installer instead of the caller's directory.
+$OutDir = [System.IO.Path]::GetFullPath($OutDir)
 
 # MSI ProductVersion has three sections; fold the date-based 4th into build (MM*100+DD).
 $vp = $Version.TrimStart('v') -split '\.'
