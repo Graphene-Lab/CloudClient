@@ -6,7 +6,7 @@
          when the test cycles proved the version works → pushing master with the gate off
          triggers release.yml automatically (tag v1.yy.MM.dd created by the workflow).
          Date-based auto version (1.yy.MM.dd). -->
-    <IsPrerelease>false</IsPrerelease>
+    <IsPrerelease>true</IsPrerelease>
     <!-- ReleaseDate: date of the intended release version 1.yy.MM.dd. Empty (default) →
          the BUILD date is used; the gate-off commit pins it to the LOCAL push date so CI
          (DateTime.Now = UTC) can never derive the previous UTC day and reuse a version. -->
