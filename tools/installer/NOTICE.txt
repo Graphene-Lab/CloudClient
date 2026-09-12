@@ -1,0 +1,26 @@
+Cloud Client - Installer Notice
+Graphene Lab
+License: GNU Affero General Public License v3.0 (AGPL-3.0)
+
+ADMINISTRATOR PRIVILEGES
+Cloud Client requires administrator privileges to run. It needs them to:
+  - synchronize the system clock,
+  - create hard links for backups and file versioning,
+  - create and mount the optional encrypted virtual disk,
+  - register the background service for automatic start.
+The installer and the application will request elevation (Windows UAC). This is required
+for the software to function and is disclosed here for transparency.
+
+PRIVACY - ZERO-KNOWLEDGE ENCRYPTION
+We do not use, view, or transfer any of your data. Cloud Client is a zero-knowledge
+client: your files are encrypted before they leave your machine, and the encryption key
+stays on your side only. The server stores only encrypted data that it cannot read. The
+software connects only to your own private cloud server, never to a third-party service.
+You are solely responsible for your passphrase: without it the data cannot be recovered
+by anyone, including us.
+
+CODE SIGNING
+This build is code-signed only when a certificate is available. The project is AGPL-3.0
+open source, so it is eligible for the free SignPath open-source code-signing program.
+If this installer is unsigned, Windows SmartScreen may show a warning; the source is
+public and auditable at https://github.com/Graphene-Lab/CloudClient

@@ -364,3 +364,10 @@ FodyWeavers.xsd
 
 # Local-only TODO file (Linux store accounts pending etc.) — never pushed
 TODO-LOCAL.md
+
+# Installer build artifacts — the MSI ships as a GitHub Release asset, never committed.
+installer-out/
+.wix-tmp/
+tools/installer/.wix/
+tools/installer/license.rtf
+tools/installer/CloudClient.wxs

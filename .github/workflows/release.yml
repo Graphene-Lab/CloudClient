@@ -2,9 +2,13 @@ name: Build and Release CloudClient
 
 # The release is AUTOMATIC: pushing master with IsPrerelease=false in Cloud/Cloud.csproj
 # (in the pushed commit) triggers the wait for the dependency NuGet packages, the build of the
-# platform archives and the GitHub release — the tag v1.yy.MM.dd is created on the fly. No tag
-# push is needed. With IsPrerelease=true, or when today's tag already exists, the run is
-# skipped. CloudClient has no Microsoft Store channel (unlike AgentBridge).
+# platform archives, the Windows MSI installer and the GitHub release — the tag v1.yy.MM.dd is
+# created on the fly. No tag push is needed. With IsPrerelease=true, or when today's tag already
+# exists, the run is skipped. CloudClient has no Microsoft Store channel (unlike AgentBridge):
+# the app needs administrator privileges (clock sync, hard-link versioning, VHDX mount, service
+# registration), which the Store's AppContainer sandbox forbids. Instead the Windows installer is
+# a per-machine MSI published on GitHub Releases, shipping the AGPL-3.0 license and an honest
+# admin/privacy notice (tools/installer/NOTICE.txt).
 on:
   push:
     branches: [master]
@@ -174,8 +178,63 @@ jobs:
           name: cloudclient-${{ matrix.rid }}
           path: cloudclient-${{ matrix.rid }}.tar.gz
 
-  release:
+  # Windows MSI installer (per-machine). Built from the win-x64 self-contained publish and
+  # harvested into a WiX v5 MSI by tools/installer/New-CloudClientInstaller.ps1. The app
+  # requires administrator privileges (see tools/installer/NOTICE.txt), so this is NOT a
+  # Store package — it is published on GitHub Releases. Unsigned unless SIGN_* secrets are
+  # configured; the AGPL-3.0 project is eligible for the free SignPath open-source signing
+  # program. It runs after the build jobs so the dependency NuGet packages are already
+  # published/available (the build jobs performed the wait), avoiding a duplicated wait step.
+  store-msi:
     needs: [check-version, build]
+    if: needs.check-version.outputs.do_release == 'true'
+    name: Build Windows MSI installer
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: CloudClient
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore WiX tool
+        working-directory: CloudClient/tools/installer
+        run: dotnet tool restore
+
+      - name: Publish win-x64 payload
+        run: |
+          dotnet publish CloudClient/Cloud/Cloud.csproj -c Release -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -p:DebugType=None -p:DebugSymbols=false `
+            -o ./msi-payload
+
+      - name: Build MSI
+        run: |
+          pwsh -File CloudClient/tools/installer/New-CloudClientInstaller.ps1 `
+            -PayloadDir ./msi-payload `
+            -Version '${{ needs.check-version.outputs.version }}' `
+            -OutDir ./msi-out `
+            -UseUi 0
+        env:
+          SIGN_PFX: ${{ secrets.SIGN_PFX }}
+          SIGN_PFX_PASSWORD: ${{ secrets.SIGN_PFX_PASSWORD }}
+          SIGN_THUMBPRINT: ${{ secrets.SIGN_THUMBPRINT }}
+          SIGN_TIMESTAMP_URL: ${{ secrets.SIGN_TIMESTAMP_URL }}
+
+      - name: Upload MSI
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloudclient-msi
+          path: msi-out/*.msi
+
+  release:
+    needs: [check-version, build, store-msi]
     if: needs.check-version.outputs.do_release == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -202,4 +261,5 @@ jobs:
           tag_name: v${{ needs.check-version.outputs.version }}
           files: |
             artifacts/**/*.tar.gz
+            artifacts/**/*.msi
           generate_release_notes: true
