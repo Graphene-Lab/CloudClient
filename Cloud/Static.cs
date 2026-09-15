@@ -118,6 +118,13 @@ namespace Cloud
         /// </summary>
         public static int Port;
 
+        /// <summary>
+        /// Single-instance lock held for the whole life of the process. A second launch uses
+        /// it to detect that the resident Cloud Client is already running, instead of colliding
+        /// on the fixed UI port and stopping with "The port N is busy!" (issue #7).
+        /// </summary>
+        internal static System.Threading.Mutex? InstanceLock;
+
         public static SecureStorage.Storage Storage;
 
         // Check if the current user is an administrator

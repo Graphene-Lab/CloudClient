@@ -119,7 +119,7 @@ Click the theme selector (top-right of the UI) to switch between:
 | Problem | Solution |
 |---|---|
 | Application does not start | Ensure you are running as administrator/root |
-| "Already running" message | Another instance is open; check the system tray |
+| "Already running" / second launch | The control panel is already open: the app just brings it up in your browser |
 | Cannot connect to server | Check network connectivity and firewall rules |
 | Files not syncing | Check the Diagnostics panel for errors |
 | Forgot passphrase | Unrecoverable — the passphrase is your only credential |

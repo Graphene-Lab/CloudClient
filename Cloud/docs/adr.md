@@ -44,11 +44,15 @@ Require and enforce **administrator/root** privileges at startup. Exit with code
 Running two instances of the cloud client against the same cloud path would cause file conflicts and duplicate sync operations.
 
 ### Decision
-Use a spin-wait mutex at startup to prevent multiple instances. If another instance is detected within 5 seconds, exit cleanly.
+A single-instance lock (a named mutex held for the whole life of the process) plus a quick
+check of whether the control panel is already being served on the fixed UI port. If another
+Cloud Client is already running, the new launch does not start a second web server: it opens
+the already-running control panel in the browser and exits cleanly.
 
 ### Consequences
-- **Positive**: data consistency guaranteed.
-- **Positive**: clean user experience (second launch re-uses the first instance's UI).
+- **Positive**: data consistency guaranteed (only one instance touches the cloud path).
+- **Positive**: clean user experience - a second launch re-uses the first instance's UI
+  instead of colliding on the fixed port and stopping with "The port N is busy!" (issue #7).
 - **Negative**: multi-cloud scenarios require separate installation paths (by design).
 
 ---

@@ -67,5 +67,5 @@ The `AppSync` library provides self-update functionality. Place the new build ar
 ## Logging and Error Handling
 
 - Unhandled exceptions are caught by `CloudSync.Util.UnhandledException` and written to a crash log.
-- The application exits with code 1 if not running as admin or if another instance is already running.
+- The application exits with code 1 if not running as admin. If another instance is already running (or the control panel is already served on the UI port), the new launch opens the running control panel in the browser and exits with code 0 instead of colliding on the fixed port.
 - Use `CloudSync.Util.RecordError` to log non-fatal errors.

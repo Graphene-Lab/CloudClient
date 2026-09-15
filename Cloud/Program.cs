@@ -163,6 +163,39 @@ foreach (var url in urls)
 }
 Static.Storage = new SecureStorage.Storage(Static.UIAddress);
 
+// The control panel is served on a fixed port and the application is meant to run as a
+// single resident instance. If it is started again while a control panel is already
+// available on that port - a second click on the desktop icon, the auto-start task
+// together with a manual launch, or a previous version still running - the second process
+// used to collide on the fixed port and stop with "The port N is busy!" (issue #7),
+// leaving the user with a blank page and a confusing error. Detect that case and simply
+// bring the already-running control panel up in the browser, then exit cleanly.
+bool ControlPanelIsAlreadyServed()
+{
+    try
+    {
+        using var http = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(3) };
+        using var request = new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, Static.UIAddress);
+        // Any HTTP reply on the Cloud Client UI port means a control panel is already up.
+        using var response = http.Send(request);
+        return true;
+    }
+    catch
+    {
+        return false;
+    }
+}
+
+Static.InstanceLock = new Mutex(true, "GrapheneLab.CloudClient." + Static.Port, out bool firstInstance);
+if (!firstInstance || ControlPanelIsAlreadyServed())
+{
+    Console.WriteLine("Cloud Client is already running. Opening the control panel at " + Static.UIAddress);
+    Static.OpenUI?.Invoke();
+    CloudSync.Util.DisallowRestartApplicationOnEnd = false;
+    Environment.Exit(0);
+    return;
+}
+
 var virtualDisk = (bool)configuration.GetValue(typeof(bool), "VirtualDisk", false);
 var cloudPath = new DirectoryInfo(Static.CloudPath);
 if (virtualDisk)
@@ -266,8 +299,14 @@ Func<bool> portIsAvailable = () =>
 
 if (!SpinWait.SpinUntil(portIsAvailable, TimeSpan.FromSeconds(180)))
 {
-    Debugger.Break();
-    throw new Exception("The port " + Static.Port + " is busy!");
+    // The fixed UI port is still occupied and the quick check above did not get a reply.
+    // Rather than stopping the application with "The port N is busy!" (issue #7), bring up
+    // in the browser whatever control panel is already serving this port and exit cleanly.
+    Console.WriteLine("Port " + Static.Port + " is already in use. Opening the control panel at " + Static.UIAddress);
+    Static.OpenUI?.Invoke();
+    CloudSync.Util.DisallowRestartApplicationOnEnd = false;
+    Environment.Exit(0);
+    return;
 }
 else
 {
