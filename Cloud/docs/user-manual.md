@@ -57,7 +57,7 @@ Software version, license, and system information.
 
 ## Synchronisation
 
-Files placed in the configured cloud directory (`CloudPath` in `appsettings.json`, default `~/Cloud`) are automatically synchronised to the cloud server as soon as they are modified. The status icon indicates:
+Files placed in the configured cloud directory (`CloudPath` in `appsettings.json`, default `~/Cloud`) are automatically synchronised to the cloud server as soon as they are modified. If the configured cloud folder (or one of its parent folders) does not exist yet, the application creates it automatically at startup. If the folder cannot be created — for example because `CloudPath` points to a drive that is not connected — the application shows a clear message telling you to check the `CloudPath` value in `appsettings.json` instead of failing silently. The status icon indicates:
 
 | Icon | Meaning |
 |---|---|

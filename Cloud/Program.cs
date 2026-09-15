@@ -85,8 +85,24 @@ EncryptedMessaging.Context.UsePullPushDataChannel = (bool)configuration.GetValue
 
 if (!new FileInfo(Static.CloudPath).Directory.Exists)
 {
-    CloudBox.CloudBox.ResetAppData();
-    throw new Exception("ERROR: Invalid cloud path!"); // Restart!
+    // The cloud area, or one of its parent folders, is missing: for example the configured
+    // path points to a folder that was never created or to a drive that is not connected.
+    // Create the whole path so the application can start (the cloud folder is created here
+    // anyway later on). If the location is genuinely unreachable, tell the user what to fix
+    // instead of throwing an exception that leaves the window blank with no explanation.
+    try
+    {
+        Directory.CreateDirectory(Static.CloudPath);
+    }
+    catch (Exception ex)
+    {
+        var invalidCloudPathMessage = "Invalid cloud path: '" + Static.CloudPath + "'. The folder does not exist and cannot be created. Check the \"CloudPath\" value in appsettings.json (or connect the drive) and start the application again.";
+        Console.WriteLine(invalidCloudPathMessage);
+        CloudSync.Util.RecordError(new Exception(invalidCloudPathMessage, ex));
+        CloudSync.Util.DisallowRestartApplicationOnEnd = false;
+        Environment.Exit(1);
+        return;
+    }
 }
 
 Func<int, bool> PortIsRearchable = (port) =>
