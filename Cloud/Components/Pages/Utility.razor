@@ -44,17 +44,6 @@
     }
 }
 
-@if (Directory.Exists(Util.CurrentPublicationPath))
-{
-    if (Util.PackageIsReady())
-    {
-        <button class="btn btn-success m-2" title="You can publish the application on the private store and allow users to update" @onclick=PublishCurrentApplication>Publish application</button>
-    }
-    else
-    {
-        <span class="alert-warning"><a target="_blank" href="https://learn.microsoft.com/en-us/visualstudio/deployment/quickstart-deploy-aspnet-web-app?view=vs-2022&tabs=folder">Publish the application to folder</a> from the development environment, to have the button here to update the application on the online repository</span>
-    }
-}
 <button class="btn btn-success m-2" title="Check for updates" @onclick=CheckForUpdates>Check for updates</button>
 @if (Message != null)
 {
@@ -64,18 +53,6 @@
 }
 
 @code {
-    private void PublishCurrentApplication()
-    {
-        try
-        {
-            Util.PublishCurrentApplication();
-            SetMassage("Operation performed successfully!");
-        }
-        catch (Exception ex)
-        {
-            SetMassage(ex.Message, true);
-        }
-    }
     private void CheckForUpdates()
     {
         SetMassage(Util.UpdateApplication());

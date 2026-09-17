@@ -1,6 +1,0 @@
-﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Target Name="CustomAfterPublish" AfterTargets="Publish" Condition="'$(OS)' == 'Windows_NT' and '$(SolutionDir)' != ''">
-    <Message Text=">>> Creating ZIP CloudClientDesktop from $(PublishDir)" Importance="High" />
-    <Exec Command="powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command &quot;&amp; { if (Test-Path '$(SolutionDir)..\..\www\SiaTheCloud\download') { [System.IO.Compression.ZipFile]::CreateFromDirectory('$(PublishDir)', '$(SolutionDir)..\..\www\SiaTheCloud\download\CloudClientDesktop.zip', [System.IO.Compression.CompressionLevel]::Optimal, $false); Write-Host 'ZIP created successfully' } else { Write-Host 'Destination path not found, ZIP not created' } }&quot;" />
-  </Target>
-</Project>

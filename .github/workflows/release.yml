@@ -149,7 +149,7 @@ jobs:
           echo "::error::their repos carry today's tag v$RAW, so they SHOULD be published — check the failed 'Publish NuGet Package' run of the repo(s) above, fix it, then re-run. Proceeding would restore yesterday's package (misleading build crash or silent stale release)."
           exit 1
 
-      # Builds against the published NuGet packages (CloudBox 1.* closure, AppSync,
+      # Builds against the published NuGet packages (CloudBox 1.* closure, GitHubAppSync,
       # AntiGitLibrary, SystemExtra, UISupportBlazor) — the sibling repos are never checked
       # out here. Self-contained single-file per RID, like AgentBridge: the archives run on a
       # machine without a system .NET runtime (the PWA/web client and install scripts ship
@@ -233,8 +233,46 @@ jobs:
           name: cloudclient-msi
           path: msi-out/*.msi
 
+  # Portable update package: the framework-dependent build (Cloud.dll sits next to the
+  # executable) that the website ships and that self-updates from the "portable" channel.
+  # Built with a plain framework-dependent publish (no RID), then zipped and manifested by
+  # GitHubAppSync's helper. The helper is taken from the GitHubAppSync repo (checked out here)
+  # so the asset format stays identical to what the client parser reads — one source of truth.
+  # NOTE: this publish restores GitHubAppSync from NuGet (the sibling is not on the runner),
+  # so GitHubAppSync must already be published (v* tag) before a CloudClient release runs.
+  portable:
+    needs: check-version
+    if: needs.check-version.outputs.do_release == 'true'
+    name: Build portable update package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout CloudClient
+        uses: actions/checkout@v4
+        with:
+          path: CloudClient
+      - name: Checkout GitHubAppSync (asset helper)
+        uses: actions/checkout@v4
+        with:
+          repository: Graphene-Lab/GitHubAppSync
+          path: GitHubAppSync
+          ref: master
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Publish framework-dependent (portable)
+        working-directory: CloudClient
+        run: dotnet publish Cloud/Cloud.csproj -c Release -o ./portable
+      - name: Build update assets (portable.zip + portable-manifest.json)
+        run: pwsh -File GitHubAppSync/tools/New-UpdateAsset.ps1 -PublishDir CloudClient/portable -Channel portable -Version '${{ needs.check-version.outputs.version }}' -OutDir ./portable-assets
+      - name: Upload portable assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: portable-update
+          path: portable-assets/*
+
   release:
-    needs: [check-version, build, store-msi]
+    needs: [check-version, build, store-msi, portable]
     if: needs.check-version.outputs.do_release == 'true'
     runs-on: ubuntu-latest
     steps:
@@ -262,4 +300,5 @@ jobs:
           files: |
             artifacts/**/*.tar.gz
             artifacts/**/*.msi
+            artifacts/portable-update/*
           generate_release_notes: true

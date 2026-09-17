@@ -52,8 +52,8 @@
          cannot check out the private sibling repos). CloudClient.csproj is in this repo. -->
     <ProjectReference Include="..\..\..\AntiGit\AntiGit\AntiGitLibrary.csproj" Condition="Exists('..\..\..\AntiGit\AntiGit\AntiGitLibrary.csproj')" />
     <PackageReference Include="AntiGitLibrary" Version="1.*" Condition="!Exists('..\..\..\AntiGit\AntiGit\AntiGitLibrary.csproj')" />
-    <ProjectReference Include="..\..\..\AppSync\AppSync.csproj" Condition="Exists('..\..\..\AppSync\AppSync.csproj')" />
-    <PackageReference Include="AppSync" Version="1.*" Condition="!Exists('..\..\..\AppSync\AppSync.csproj')" />
+    <ProjectReference Include="..\..\..\GitHubAppSync\GitHubAppSync.csproj" Condition="Exists('..\..\..\GitHubAppSync\GitHubAppSync.csproj')" />
+    <PackageReference Include="GitHubAppSync" Version="1.*" Condition="!Exists('..\..\..\GitHubAppSync\GitHubAppSync.csproj')" />
     <ProjectReference Include="..\..\..\SystemExtra\SystemExtra.csproj" Condition="Exists('..\..\..\SystemExtra\SystemExtra.csproj')" />
     <PackageReference Include="SystemExtra" Version="1.*" Condition="!Exists('..\..\..\SystemExtra\SystemExtra.csproj')" />
     <ProjectReference Include="..\..\..\UISupportBlazor\UISupportBlazor.csproj" Condition="Exists('..\..\..\UISupportBlazor\UISupportBlazor.csproj')" />
@@ -145,5 +145,4 @@
     </ItemGroup>
   </Target>
 
-  <Import Project="CloudClient.wpp.targets" Condition="Exists('CloudClient.wpp.targets')" />
 </Project>

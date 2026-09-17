@@ -1,64 +1,39 @@
-﻿using AppSync;
+﻿using System.IO;
+using System.Runtime.InteropServices;
+using GitHubAppSync;
 
 namespace Cloud
 {
     public static class Util
     {
         /// <summary>
-        /// The address of the server that acts as a repository for new versions of applications (new versions are published to this address and apps that need to be updated get the new version from here)
+        /// Updates are published as GitHub Releases of this repository, so the client pulls them
+        /// from there instead of from a private store server.
         /// </summary>
-        private const string DefaultUpdateUrl = "http://update.tc0.it:5050";
+        private const string UpdateRepository = "Graphene-Lab/CloudClient";
 
         /// <summary>
-        /// The local location of the application package ready to be published.
-        /// Explanation: The developer can publish updates of this app to a public repository in order to distribute them. This is the location of the application ready for distribution.
+        /// The release channel this running build belongs to, which selects the asset pair the
+        /// updater reads. The framework-dependent ("portable") build ships Cloud.dll next to the
+        /// executable; the self-contained single-file builds do not, and update from their own RID.
+        /// This mirrors the detection the install scripts already use.
         /// </summary>
-        public static readonly string CurrentPublicationPath = Path.Combine(new DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.FullName, "Release", "net" + GetFrameworkVersion(), "publish");
-
-
-        static string GetFrameworkVersion()
-        {
-            string frameworkDescription = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription;
-            string version = frameworkDescription.Split(' ')[1]; 
-            string majorMinorVersion = string.Join('.', version.Split('.').Take(2));
-            return majorMinorVersion;
-        }
+        private static string UpdateChannel =>
+            File.Exists(Path.Combine(AppContext.BaseDirectory, "Cloud.dll"))
+                ? "portable"
+                : RuntimeInformation.RuntimeIdentifier;
 
         /// <summary>
-        /// Returns true if a new package was recently created.
+        /// Check for updates and update the current application with the latest version published
+        /// on this channel's GitHub release, when that version is newer than the running one.
         /// </summary>
-        /// <returns>True if the package for publishing is ready</returns>
-        public static bool PackageIsReady()
-        {
-            if (Directory.Exists(CurrentPublicationPath))
-            {
-                var exe = Directory.GetFiles(CurrentPublicationPath, "*.exe").First();
-                var exeInfo = new FileInfo(exe);
-                if (exeInfo.Exists)
-                {
-                    if ((DateTime.UtcNow - exeInfo.LastAccessTimeUtc).TotalMinutes < 30) // Check if the last build is recent
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
+        static public string UpdateApplication() =>
+            Update.CheckAndUpdate(UpdateRepository, Static.CanUpdate, UpdateChannel).ToString();
 
         /// <summary>
-        /// Check for updates and update the current application with the latest version published in the current store if is necessary
+        /// Start a timer that periodically checks for app updates from this channel's GitHub release.
         /// </summary>
-        /// <returns></returns>
-        static public string UpdateApplication() => Update.CheckAndUpdate(DefaultUpdateUrl, Static.CanUpdate);
-
-        /// <summary>
-        /// Start a timer that periodically checks for app updates
-        /// </summary>
-        static public void MonitorUpdates() => Update.MonitoringUpdates(DefaultUpdateUrl, Static.CanUpdate);
-
-        /// <summary>
-        /// Publish the current application package in the private store in order to distribute an update
-        /// </summary>
-        public static void PublishCurrentApplication() => Prepare.PublishCurrentApplication(DefaultUpdateUrl, publicationPath: CurrentPublicationPath);
+        static public void MonitorUpdates() =>
+            Update.MonitoringUpdates(UpdateRepository, Static.CanUpdate, UpdateChannel);
     }
 }
