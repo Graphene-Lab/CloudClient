@@ -227,6 +227,14 @@ These are load-bearing; breaking them re-introduces the bugs the rewrite removed
   compare on the manifest `version`, never on the MSI file version.
 - **`ReleaseDate` pin.** The gate-off commit pins `ReleaseDate` to the intended local push
   date so the UTC runner cannot derive the previous day and reuse a version.
+- **Channel releases must be FULL releases (not pre-release, not draft).** The updater reads
+  via `releases/latest`, and GitHub's `releases/latest` returns only the newest
+  **non-draft, non-prerelease** release. If a release carrying the channel assets is marked
+  "pre-release", the redirect skips it (resolves to the previous stable, or 404s) and the
+  client silently reports `NoManifest` — it never sees the new build. CloudClient's
+  `release.yml` creates full releases (`prerelease=false`), so this holds; do not mark a
+  channel release as pre-release. (Supporting pre-release channels would require reading the
+  REST API, which reintroduces the rate-limit the stable redirect avoids.)
 
 ---
 
