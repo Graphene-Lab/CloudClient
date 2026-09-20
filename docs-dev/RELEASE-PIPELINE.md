@@ -23,8 +23,9 @@ Releases, Linux desktop channels, easy README install.
 - GitHub: public `Graphene-Lab/CloudClient`, branch `master`, **release.yml active**:
   gate `IsPrerelease` → (optional) NuGet wait → 5 per-RID archives → GitHub release +
   changelog + tag. First release **v1.26.09.09** produced and verified.
-- App auto-update: CloudClient keeps its existing AppSync updater against its private
-  update server (product decision, not rewired to GitHub — see TODO-LOCAL.md).
+- App auto-update: rewired 2026-09-17 from the private `AppSync` server to **GitHub
+  Releases** via the `GitHubAppSync` library (`Cloud/Util.cs`). See
+  [AUTO-UPDATE.md](AUTO-UPDATE.md) for the full design / test / verification guide.
 - Linux store channels: all account-gated externally (Snap/Ubuntu SSO approval pending,
   AUR registration suspended, Flathub closed to this family) → tracked in TODO-LOCAL.md;
   the primary Linux channel is the GitHub release archive + `install.sh`.
@@ -86,10 +87,14 @@ they go live.
       `v1.yy.MM.dd` pinned to the gate-off commit. E2E verified 2026-09-09: release
       `v1.26.09.09` with all five `cloudclient-<rid>.tar.gz` archives (the CloudClient.wpp
       zip hook is gated to Windows so Linux/macOS publishes are not affected).
-- [ ] Phase 4: in-app auto-update — CloudClient keeps its existing AppSync updater
-      (`Util.MonitorUpdates`) pointed at its private update server; wiring it to the GitHub
-      release tags is a product decision (the app is root-required, server-style) and is
-      intentionally NOT changed here — see TODO-LOCAL.md.
+- [x] Phase 4: in-app auto-update — rewired 2026-09-17 from the private `AppSync` HTTP
+      server to **GitHub Releases** via the new general-purpose `GitHubAppSync` library
+      (fork of AppSync: real version compare / anti-downgrade, SHA-256 verified in the
+      pipeline, no DNS pinning, pluggable `IUpdateSource`). `Cloud/Util.cs` selects the
+      channel (`portable` for the framework-dependent build, the RID otherwise); the
+      `portable` job in `release.yml` produces `portable.zip` + `portable-manifest.json`.
+      First release through the new path: **v1.26.09.17**. Full design / test / verify
+      guide: [AUTO-UPDATE.md](AUTO-UPDATE.md).
 - [ ] Phase 5: Linux store channels — see TODO-LOCAL.md (local, gitignored). All store
       accounts are external gates: Snap classic needs the Ubuntu SSO approval (same account
       as AgentBridge, pending), AUR registration is suspended, Flathub rejects submissions
