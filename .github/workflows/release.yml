@@ -116,7 +116,7 @@ jobs:
           # package -> repo that publishes it (same Graphene release convention).
           # Plain text lines (no bash associative arrays: macOS runners ship bash 3.2,
           # which does not support declare -A).
-          MAP="cloudbox:CloudLibraries cloudsynclibrary:CloudLibraries encryptedmessaging:EncryptedMessaging communicationchannel:EncryptedMessaging securestorage:SecureStorage fullduplexstreamsupport:FullDuplexStreamSupport bytesextension:BytesExtension appsync:AppSync antigitlibrary:AntiGithub backuplibrary:AntiGithub dataredundancy:AntiGithub systemextra:SystemExtra uisupportblazor:UISupportBlazor"
+          MAP="cloudbox:CloudLibraries cloudsynclibrary:CloudLibraries encryptedmessaging:EncryptedMessaging communicationchannel:EncryptedMessaging securestorage:SecureStorage fullduplexstreamsupport:FullDuplexStreamSupport bytesextension:BytesExtension githubappsync:GitHubAppSync antigitlibrary:AntiGithub backuplibrary:AntiGithub dataredundancy:AntiGithub systemextra:SystemExtra uisupportblazor:UISupportBlazor"
           WAIT=""
           for entry in $MAP; do
             pkg="${entry%%:*}"
