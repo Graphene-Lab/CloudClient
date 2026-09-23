@@ -93,6 +93,9 @@ they go live.
       pipeline, no DNS pinning, pluggable `IUpdateSource`). `Cloud/Util.cs` selects the
       channel (`portable` for the framework-dependent build, the RID otherwise); the
       `portable` job in `release.yml` produces `portable.zip` + `portable-manifest.json`.
+      The portable publish targets `-r win-x64 --self-contained false` so the archive carries
+      the Windows launcher `Cloud.exe` that `install.bat` runs (a no-RID publish baked a Linux
+      ELF `Cloud` launcher and no `Cloud.exe`, breaking the Windows download — issue #9).
       First release through the new path: **v1.26.09.17**. Full design / test / verify
       guide: [AUTO-UPDATE.md](AUTO-UPDATE.md).
 - [ ] Phase 5: Linux store channels — see TODO-LOCAL.md (local, gitignored). All store

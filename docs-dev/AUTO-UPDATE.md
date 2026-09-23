@@ -99,7 +99,15 @@ Manifest shape (camelCase, read case-insensitively):
 
 The assets are produced in CI by `release.yml` → job `portable`:
 
-1. `dotnet publish Cloud/Cloud.csproj -c Release -o ./portable` (framework-dependent, no RID).
+1. `dotnet publish Cloud/Cloud.csproj -c Release -r win-x64 --self-contained false -o ./portable`
+   (framework-dependent, **Windows apphost**). The `win-x64` RID is required so the payload
+   carries the Windows launcher `Cloud.exe` that `install.bat` runs. A framework-dependent
+   publish with **no RID** bakes the apphost for the build host — on the Linux runner that is a
+   Linux ELF launcher named `Cloud` with **no `Cloud.exe`**, so the Windows download fails with
+   "Cloud.exe not found" (issue #9). The `win-x64` apphost template is restored from NuGet, so
+   `Cloud.exe` is produced correctly even on Linux; the managed `Cloud.dll` and static assets
+   are platform-agnostic and Linux/macOS still run them with `dotnet Cloud.dll` (see `install.sh`).
+   A CI step asserts `Cloud.exe` and `Cloud.dll` are both present before zipping.
 2. `pwsh -File GitHubAppSync/tools/New-UpdateAsset.ps1 -PublishDir ./portable -Channel portable -Version <ver> -OutDir ./portable-assets`
 3. The `release` job attaches `artifacts/portable-update/*` to the GitHub release.
 

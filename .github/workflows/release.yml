@@ -235,9 +235,16 @@ jobs:
 
   # Portable update package: the framework-dependent build (Cloud.dll sits next to the
   # executable) that the website ships and that self-updates from the "portable" channel.
-  # Built with a plain framework-dependent publish (no RID), then zipped and manifested by
-  # GitHubAppSync's helper. The helper is taken from the GitHubAppSync repo (checked out here)
-  # so the asset format stays identical to what the client parser reads — one source of truth.
+  # Built as a Windows framework-dependent publish (-r win-x64 --self-contained false) so the
+  # archive carries the Windows apphost Cloud.exe that install.bat launches. A plain
+  # framework-dependent publish with no RID would bake the apphost for the BUILD host (Linux),
+  # shipping a Linux ELF launcher named "Cloud" and NO Cloud.exe — the Windows download then
+  # fails with "Cloud.exe not found" (issue #9). The win-x64 apphost template is restored from
+  # NuGet, so the Windows launcher is produced correctly even on the Linux runner; the managed
+  # Cloud.dll and static assets are platform-agnostic and Linux/macOS still run them with
+  # "dotnet Cloud.dll" (see install.sh). Then zipped and manifested by GitHubAppSync's helper.
+  # The helper is taken from the GitHubAppSync repo (checked out here) so the asset format
+  # stays identical to what the client parser reads — one source of truth.
   # NOTE: this publish restores GitHubAppSync from NuGet (the sibling is not on the runner),
   # so GitHubAppSync must already be published (v* tag) before a CloudClient release runs.
   portable:
@@ -260,9 +267,24 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Publish framework-dependent (portable)
+      - name: Publish framework-dependent (portable, Windows apphost)
         working-directory: CloudClient
-        run: dotnet publish Cloud/Cloud.csproj -c Release -o ./portable
+        run: dotnet publish Cloud/Cloud.csproj -c Release -r win-x64 --self-contained false -o ./portable
+      - name: Verify Cloud.exe is present in the portable payload
+        working-directory: CloudClient
+        shell: bash
+        run: |
+          # Guard against re-introducing the issue #9 regression: the Windows download must
+          # carry the Cloud.exe that install.bat launches. Fail the build if it is missing.
+          if [ ! -f ./portable/Cloud.exe ]; then
+            echo "::error::portable payload is missing Cloud.exe (Windows launcher). The portable publish must target win-x64 so install.bat can launch Cloud.exe."
+            exit 1
+          fi
+          if [ ! -f ./portable/Cloud.dll ]; then
+            echo "::error::portable payload is missing Cloud.dll (framework-dependent core)."
+            exit 1
+          fi
+          echo "portable payload OK: Cloud.exe + Cloud.dll present"
       - name: Build update assets (portable.zip + portable-manifest.json)
         run: pwsh -File GitHubAppSync/tools/New-UpdateAsset.ps1 -PublishDir CloudClient/portable -Channel portable -Version '${{ needs.check-version.outputs.version }}' -OutDir ./portable-assets
       - name: Upload portable assets
