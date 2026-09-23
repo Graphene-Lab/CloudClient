@@ -123,3 +123,16 @@ Click the theme selector (top-right of the UI) to switch between:
 | Cannot connect to server | Check network connectivity and firewall rules |
 | Files not syncing | Check the Diagnostics panel for errors |
 | Forgot passphrase | Unrecoverable — the passphrase is your only credential |
+
+---
+
+## Frequently Asked Questions
+
+**I entered a QR code and PIN that I already used with another app and it says "Wrong pin or passphrase". Why?**
+Each QR code belongs to one specific cloud and can only be used to connect to that cloud. The message means the server did not recognise the combination you entered. Make sure you are using the *connection* QR code and the PIN issued by the cloud you actually want to sync with — not the two-factor authenticator QR code, not a QR code shown to pair a different device, and not the credentials of a different cloud. Re-enter them carefully, without extra spaces. The same connection QR and PIN that worked the first time for that cloud will work here too.
+
+**Why can I only create a new account on the very first start?**
+This is intentional. Once the client already has a saved connection, the "Create anonymous account" button is hidden on purpose so that one person cannot open many free accounts. If you genuinely want to start over with a brand-new account, log out of the current connection and clear the saved data first; the button will appear again.
+
+**Where are the manual refresh buttons for the Cloud folders?**
+There are none because synchronisation is automatic. As soon as you add or change a file inside the configured Cloud folder it is sent to the server on its own, and new files arriving from the server are pulled down the same way. You only need the folder to be reachable and the connection to be active. If a file seems stuck, open the Diagnostics panel to check for a connection problem or a file held open by another program.
