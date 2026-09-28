@@ -108,33 +108,31 @@ else if (!LoginIsRunning)
     <label for="Pin">Pin/2FA</label>
     <input type="text" id="Pin" style="text-security:disc; -webkit-text-security:disc;" class="form-control" @bind="Pin" />
 
-    if (System.Diagnostics.Debugger.IsAttached)
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" id="ZeroKnowledge" @bind="passphraseShow">
+        <label class="form-check-label" for="ZeroKnowledge">
+            By enabling zero knowledge encryption, your cloud-side data will be encrypted with a passphrase that only you have.
+        </label>
+    </div>
+
+
+    if (passphraseShow)
     {
         <div class="form-check">
-            <input class="form-check-input" type="checkbox" id="ZeroKnowledge" @bind="passphraseShow">
-            <label class="form-check-label" for="ZeroKnowledge">
-                By enabling zero knowledge encryption, your cloud-side data will be encrypted with a passphrase that only you have.
+            <input class="form-check-input" type="checkbox" id="UseMyPassphrase" @bind="UseMyPassphrase">
+            <label class="form-check-label" for="UseMyPassphrase">
+                I already have a passphrase.
             </label>
         </div>
 
 
-        if (passphraseShow)
-        {
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="UseMyPassphrase" @bind="UseMyPassphrase">
-                <label class="form-check-label" for="UseMyPassphrase">
-                    I already have a passphrase.
-                </label>
-            </div>
-
-
-            <div contenteditable="true" aria-multiline="true">
-                <label for="Passphrase">Passphrase (important: A different setting than the one you used for the first time will prevent you from logging into the cloud!)</label>
-                <textarea id="Passphrase" rows="3" class="form-control" @bind="Passphrase" />
-            </div>
-        }
-
+        <div contenteditable="true" aria-multiline="true">
+            <label for="Passphrase">Passphrase (important: A different setting than the one you used for the first time will prevent you from logging into the cloud!)</label>
+            <textarea id="Passphrase" rows="3" class="form-control" @bind="Passphrase" />
+        </div>
     }
+
+
     <button class="btn btn-primary my-3" type="submit" @onclick="HandleValidSubmit">Submit</button>
 }
 @if (ErrorCommunicationTime.AddMinutes(1) >= DateTime.UtcNow)
