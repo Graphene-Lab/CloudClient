@@ -164,6 +164,10 @@ jobs:
             -p:DebugType=None -p:DebugSymbols=false \
             -o ./publish
 
+      - name: Verify folder icons in publish payload
+        shell: pwsh
+        run: ./CloudClient/tools/Verify-CloudClientIcons.ps1 -PayloadDir ./publish
+
       - name: Package
         shell: bash
         run: |
@@ -213,6 +217,10 @@ jobs:
             -p:IncludeNativeLibrariesForSelfExtract=true `
             -p:DebugType=None -p:DebugSymbols=false `
             -o ./msi-payload
+
+      - name: Verify folder icons in MSI payload
+        shell: pwsh
+        run: ./CloudClient/tools/Verify-CloudClientIcons.ps1 -PayloadDir ./msi-payload
 
       - name: Build MSI
         run: |
@@ -285,6 +293,9 @@ jobs:
             exit 1
           fi
           echo "portable payload OK: Cloud.exe + Cloud.dll present"
+      - name: Verify folder icons in portable payload
+        shell: pwsh
+        run: ./CloudClient/tools/Verify-CloudClientIcons.ps1 -PayloadDir ./CloudClient/portable
       - name: Build update assets (portable.zip + portable-manifest.json)
         run: pwsh -File GitHubAppSync/tools/New-UpdateAsset.ps1 -PublishDir CloudClient/portable -Channel portable -Version '${{ needs.check-version.outputs.version }}' -OutDir ./portable-assets
       - name: Upload portable assets
